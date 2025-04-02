@@ -3,179 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeCleanSicily</title>
-    <link rel="stylesheet" href="assets/styles/style.css">
-    <link rel="manifest" href="manifest.json">
-
+    <title>WeCleanHere Sicily</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
     <!-- Font Awesome via CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-
-    <!-- Firebase JS SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-analytics.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBDnDVpqLDwfCZSkkwKXxImMl0Yoajtr4Y",
-            authDomain: "wecleansicily.firebaseapp.com",
-            projectId: "wecleansicily",
-            storageBucket: "wecleansicily.firebasestorage.app",
-            messagingSenderId: "810749768712",
-            appId: "1:810749768712:web:d6551fa8d408baf5288dbd",
-            measurementId: "G-BZ54KPSBD1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Funzione per visualizzare una sezione specifica
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(section => {
-                section.style.display = 'none';
-            });
-            document.getElementById(sectionId).style.display = 'block';
-        }
-
-        // Funzione per registrare l'utente
-        async function registerUser() {
-            const firstname = document.getElementById('register-firstname').value;
-            const lastname = document.getElementById('register-lastname').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Salva i dati aggiuntivi nel Firestore
-                await setDoc(doc(db, "users", user.uid), {
-                    firstname: firstname,
-                    lastname: lastname,
-                    email: email,
-                    userType: 'volunteer' // Puoi aggiungere una logica per scegliere tra 'volunteer' o 'supporter'
-                });
-
-                alert("Registrazione completata!");
-                loginUser(); // Dopo la registrazione, fai il login automaticamente
-            } catch (error) {
-                console.error("Errore nella registrazione: ", error);
-                alert('Errore nella registrazione: ' + error.message); // Mostra l'errore all'utente
-            }
-        }
-
-        // Funzione di login
-        async function loginUser() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Recupera i dati dell'utente dal Firestore
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-
-                    // Salva i dati dell'utente nel localStorage
-                    localStorage.setItem('loggedIn', 'true');
-                    localStorage.setItem('userData', JSON.stringify(userData));
-
-                    showProfile(userData); // Mostra il profilo dell'utente
-                    showSection('home-section'); // Mostra la home
-                    document.getElementById('bottom-nav').style.display = 'block'; // Mostra la barra di navigazione
-                } else {
-                    alert("Nessun dato trovato per l'utente");
-                }
-            } catch (error) {
-                console.error("Errore nel login: ", error);
-                alert('Errore nel login: ' + error.message); // Mostra l'errore all'utente
-            }
-        }
-
-        // Funzione per visualizzare il profilo
-        function showProfile(userData) {
-            document.getElementById('user-name').textContent = `${userData.firstname} ${userData.lastname}`;
-            document.getElementById('username').textContent = `@${userData.firstname.toLowerCase()}`;
-            document.getElementById('pa-balance').textContent = userData.paBalance || "0 PA"; // Aggiungi la logica per i punti PA
-            document.getElementById('badges').textContent = userData.badges.join(', ') || "Nessun badge"; // Aggiungi logica per i badge
-            showSection('profile-section');
-        }
-
-        // Verifica se l'utente è loggato al caricamento della pagina
-        window.addEventListener('DOMContentLoaded', checkUserLogin);
-
-        // Funzione per controllare se l'utente è loggato
-        function checkUserLogin() {
-            const loggedIn = localStorage.getItem('loggedIn');
-            if (loggedIn === 'true') {
-                const userData = JSON.parse(localStorage.getItem('userData'));
-                showProfile(userData); // Mostra il profilo
-                showSection('home-section'); // Mostra la home
-                document.getElementById('bottom-nav').style.display = 'block'; // Mostra la barra di navigazione
-            } else {
-                showSection('login-section'); // Mostra la sezione di login
-                document.getElementById('bottom-nav').style.display = 'none'; // Nascondi la barra di navigazione
-            }
-        }
-
-        // Gestione dei click del menu di navigazione
-        document.getElementById('home-nav').addEventListener('click', () => {
-            showSection('home-section');
-        });
-
-        document.getElementById('map-nav').addEventListener('click', () => {
-            showSection('map-section');
-            initMap();  // Funzione per inizializzare la mappa
-        });
-
-        document.getElementById('profile-nav').addEventListener('click', () => {
-            showSection('profile-section');
-        });
-
-        // Funzione per inizializzare la mappa OpenStreetMap
-        function initMap() {
-            const map = L.map('map-container', {
-                zoomControl: false // Disabilita i controlli di zoom predefiniti
-            }).setView([37.5, 13.5], 8); // Coordinata della Sicilia
-
-            // Aggiungi il layer della mappa OSM
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-        }
-
-        // Lega i bottoni ai rispettivi handler
-        document.getElementById('login-btn').addEventListener('click', loginUser);
-        document.getElementById('register-btn').addEventListener('click', registerUser);
-
-    </script>
 </head>
 <body>
 
     <main id="main-content">
-        <!-- Login Section -->
-        <section id="login-section">
+        <!-- Login/Registrazione Section -->
+        <section id="login-section" style="display: none;">
             <h2>Login</h2>
-            <input type="email" id="login-email" placeholder="Email" required />
-            <input type="password" id="login-password" placeholder="Password" required />
-            <button id="login-btn">Accedi</button>
-            <p>Non hai un account? <a href="javascript:void(0);" id="go-to-register">Registrati</a></p>
-        </section>
-
-        <!-- Registrazione Section -->
-        <section id="register-section" style="display: none;">
-            <h2>Registrati</h2>
-            <input type="text" id="register-firstname" placeholder="Nome" required />
-            <input type="text" id="register-lastname" placeholder="Cognome" required />
-            <input type="email" id="register-email" placeholder="Email" required />
-            <input type="password" id="register-password" placeholder="Password" required />
-            <button id="register-btn">Registrati</button>
-            <p>Hai già un account? <a href="javascript:void(0);" id="go-to-login">Accedi</a></p>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Non hai un account? <a href="#" id="register-link">Registrati</a></p>
         </section>
 
         <!-- Home Section -->
@@ -185,7 +30,7 @@
 
         <!-- Mappa Section -->
         <section id="map-section" style="display: none;">
-            <div id="map-container" style="width: 100%; height: 400px;"></div>
+            <div id="map-container"></div>
         </section>
 
         <!-- Profilo Section -->
@@ -193,7 +38,7 @@
             <div class="profile-container">
                 <div class="profile-header">
                     <!-- Immagine del profilo -->
-                    <img src="assets/images/default-profile-pic-male.jpg" alt="Profile Picture" class="profile-pic">
+                    <img src="images/default-profile-pic-male.jpg" alt="Profile Picture" class="profile-pic">
                     <h2 id="user-name">Nome Cognome</h2>
                     <p id="username">@nomeutente</p>
                 </div>
@@ -211,6 +56,7 @@
 
                 <div class="profile-settings">
                     <button id="edit-profile">Modifica Profilo</button>
+                    <button id="logout-btn">Logout</button>
                 </div>
             </div>
         </section>
@@ -225,10 +71,12 @@
         </ul>
     </nav>
 
-    <script src="js/main.js"></script>
+    <!-- Includi il file Firebase.js -->
+    <script type="module" src="main.js"></script>
 
     <!-- Leaflet.js per la mappa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </body>
 </html>

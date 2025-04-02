@@ -1,1 +1,0 @@
-"# WeCleanHere-Sicily" 
