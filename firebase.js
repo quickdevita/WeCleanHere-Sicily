@@ -1,3 +1,5 @@
+console.log("Firebase.js caricato!");  // Debug
+
 // Importa le funzioni necessarie dagli SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
