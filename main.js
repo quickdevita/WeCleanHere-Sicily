@@ -1,7 +1,8 @@
+import "./firebase.js";  // Importa Firebase.js dentro main.js
 import { auth, db } from './firebase.js';  // Importa Firebase Auth e Firestore
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";  // Importa le funzioni per login e logout
-import "./firebase.js";  // Importa Firebase.js dentro main.js
+
 
 let map; // Variabile globale per la mappa
 
